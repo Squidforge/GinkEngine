@@ -1,0 +1,161 @@
+Metadata-Version: 2.1
+Name: PlotPy
+Version: 2.7.0
+Summary: Curve and image plotting tools for Python/Qt applications
+Author-email: Codra <p.raybaut@codra.fr>
+License: BSD 3-Clause License
+        
+        Copyright (c) 2023, CEA-Codra, Pierre Raybaut.
+        All rights reserved.
+        
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions are met:
+        
+        1. Redistributions of source code must retain the above copyright notice, this
+           list of conditions and the following disclaimer.
+        
+        2. Redistributions in binary form must reproduce the above copyright notice,
+           this list of conditions and the following disclaimer in the documentation
+           and/or other materials provided with the distribution.
+        
+        3. Neither the name of the copyright holder nor the names of its
+           contributors may be used to endorse or promote products derived from
+           this software without specific prior written permission.
+        
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+        AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+        IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+        FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+        DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+        SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+        CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+        OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        
+Project-URL: Homepage, https://github.com/PlotPyStack/plotpy/
+Project-URL: Documentation, https://plotpy.readthedocs.io/en/latest/
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows :: Windows 7
+Classifier: Operating System :: Microsoft :: Windows :: Windows 8
+Classifier: Operating System :: Microsoft :: Windows :: Windows 10
+Classifier: Operating System :: Microsoft :: Windows :: Windows 11
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Image Processing
+Classifier: Topic :: Scientific/Engineering :: Human Machine Interfaces
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Software Development :: User Interfaces
+Classifier: Topic :: Software Development :: Widget Sets
+Classifier: Topic :: Utilities
+Requires-Python: <4,>=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: guidata>=3.7
+Requires-Dist: PythonQwt>=0.14
+Requires-Dist: SciPy>=1.5
+Requires-Dist: scikit-image>=0.18
+Requires-Dist: Pillow
+Requires-Dist: tifffile
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: pylint; extra == "dev"
+Requires-Dist: Coverage; extra == "dev"
+Requires-Dist: Cython>=3.0; extra == "dev"
+Provides-Extra: doc
+Requires-Dist: PyQt5; extra == "doc"
+Requires-Dist: sphinx; extra == "doc"
+Requires-Dist: myst-parser; extra == "doc"
+Requires-Dist: sphinx-copybutton; extra == "doc"
+Requires-Dist: sphinx-qt-documentation; extra == "doc"
+Requires-Dist: python-docs-theme; extra == "doc"
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: pytest-xvfb; extra == "test"
+
+# PlotPy: Curve and image plotting tools for Python/Qt applications
+
+[![pypi version](https://img.shields.io/pypi/v/plotpy.svg)](https://pypi.org/project/plotpy/)
+[![PyPI status](https://img.shields.io/pypi/status/plotpy.svg)](https://github.com/PlotPyStack/plotpy/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/plotpy.svg)](https://pypi.python.org/pypi/plotpy/)
+[![download count](https://img.shields.io/conda/dn/conda-forge/plotpy.svg)](https://www.anaconda.com/download/)
+
+ℹ️ Created in 2016 by [Pierre Raybaut](https://github.com/PierreRaybaut) and maintained by the [PlotPyStack](https://github.com/PlotPyStack) organization.
+
+ℹ️ PlotPy ***V2*** is the new major release of [`guiqwt`](https://github.com/PierreRaybaut/guiqwt): same team 🏋️, same goal 🎯, same long-term support ⏳.
+
+## Overview
+
+`plotpy` is is a Python library providing efficient 2D data-plotting features for interactive computing and signal/image processing application development.
+It is part of the [PlotPyStack](https://github.com/PlotPyStack) project, aiming at providing a unified framework for creating scientific GUIs with Python and Qt.
+
+`plotpy` is based on:
+
+* [Python](http://www.python.org) language and [Qt](https://doc.qt.io/) GUI toolkit
+* [guidata](https://pypi.python.org/pypi/guidata) automatic GUI generation library
+* [PythonQwt](https://pypi.python.org/pypi/PythonQwt) plotting widgets library
+* [NumPy](https://pypi.python.org/pypi/NumPy) and [SciPy](https://pypi.python.org/pypi/SciPy) scientific computing libraries
+
+<img src="https://raw.githubusercontent.com/PlotPyStack/plotpy/master/doc/images/panorama.png">
+
+See [documentation](https://plotpy.readthedocs.io/en/latest/) for more details on the library and [changelog](https://github.com/PlotPyStack/PlotPy/blob/master/CHANGELOG.md) for recent history of changes.
+
+Copyrights and licensing:
+
+* Copyright © 2023 [CEA](https://www.cea.fr), [Codra](https://codra.net/), [Pierre Raybaut](https://github.com/PierreRaybaut).
+* Licensed under the terms of the BSD 3-Clause (see [LICENSE](https://github.com/PlotPyStack/PlotPy/blob/master/LICENSE)).
+
+## Features
+
+The `plotpy` library also provides the following features.
+
+General plotting features:
+
+* Ready-to-use [plot widgets and dialog boxes](https://plotpy.readthedocs.io/en/latest/features/plot/index.html)
+* [pyplot](https://plotpy.readthedocs.io/en/latest/features/pyplot.html): interactive plotting widgets, equivalent to `matplotlib.pyplot`, at least for the implemented functions
+* Supported [plot items](https://plotpy.readthedocs.io/en/latest/features/items/index.html): curves, images, contours, histograms, labels, shapes, annotations, ...
+
+Interactive features (i.e. not only programmatic plotting but also with mouse/keyboard):
+
+* Multiple object selection for moving objects or editing their properties through automatically generated dialog boxes
+* Item list panel: move objects from foreground to background, show/hide objects, remove objects, ...
+* Customizable aspect ratio for images
+* Tons of ready-to-use tools: plot canvas export to image file, image snapshot, interval selection, image rectangular filter, etc.
+* Curve fitting tool with automatic fit, manual fit with sliders, ...
+* Contrast adjustment panel for images: select the LUT by moving a range selection object on the image levels histogram, eliminate outliers, ...
+* X-axis and Y-axis cross-sections: support for multiple images, average cross-section tool on a rectangular area, ...
+* Apply any affine transform to displayed images in real-time (rotation, magnification, translation, horizontal/vertical flip, ...)
+
+Application development helpers:
+
+* Ready-to-use [plot widgets and dialog boxes](https://plotpy.readthedocs.io/en/latest/features/plot/index.html)
+* Load/save graphical objects (curves, images, shapes) into HDF5, JSON or INI files
+* A lot of test scripts which demonstrate `plotpy` features (see [examples](https://plotpy.readthedocs.io/en/latest/intro/examples.html))
+
+## Dependencies and installation
+
+### Supported Qt versions and bindings
+
+The whole PlotPyStack set of libraries relies on the [Qt](https://doc.qt.io/) GUI toolkit, thanks to [QtPy](https://pypi.org/project/QtPy/), an abstraction layer which allows to use the same API to interact with different Python-to-Qt bindings (PyQt5, PyQt6, PySide2, PySide6).
+
+Compatibility table:
+
+| PlotPy version | PyQt5 | PyQt6 | PySide2 | PySide6 |
+|----------------|-------|-------|---------|---------|
+| 2.0-2.5        | ✅    | ⚠️    | ❌     | ⚠️      |
+| Latest         | ✅    | ✅    | ❌     | ✅      |
+
+### Other dependencies and installation
+
+See [Installation](https://plotpy.readthedocs.io/en/latest/intro/installation.html) section in the documentation for more details.

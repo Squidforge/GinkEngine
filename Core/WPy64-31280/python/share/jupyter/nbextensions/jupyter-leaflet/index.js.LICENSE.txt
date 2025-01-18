@@ -1,0 +1,23 @@
+/* @preserve
+ * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
+ * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
+ */
+
+/*! Bundled license information:
+
+polygon-clipping/dist/polygon-clipping.umd.js:
+  (**
+   * splaytree v3.1.0
+   * Fast Splay tree for Node and browser
+   *
+   * @author Alexander Milevski <info@w8r.name>
+   * @license MIT
+   * @preserve
+   *)
+*/
+
+/**
+ * Leaflet vector features drag functionality
+ * @author Alexander Milevski <info@w8r.name>
+ * @preserve
+ */

@@ -1,0 +1,310 @@
+# -*- coding: utf-8 -*-
+#
+# Licensed under the terms of the BSD 3-Clause
+# (see plotpy/LICENSE for details)
+
+"""
+base
+----
+
+The `base` module provides base objects for internal use of the
+:mod:`.widgets` package.
+
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Union
+
+from guidata.configtools import get_icon
+from guidata.qthelpers import create_toolbutton
+from qtpy import QtWidgets as QW
+
+from plotpy._scaler import INTERP_LINEAR
+from plotpy.config import _
+from plotpy.items import TrImageItem
+from plotpy.plot import PlotOptions, PlotWidget
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from plotpy.plot.base import BasePlot
+    from plotpy.plot.manager import PlotManager
+    from plotpy.widgets.fliprotate import FlipRotateWidget
+    from plotpy.widgets.rotatecrop import RotateCropWidget
+
+    TransfWidget = Union[FlipRotateWidget, RotateCropWidget]
+
+
+class BaseTransform:
+    """Base transform class (for manipulating TrImageItem objects)
+
+    This is to be mixed with a class providing the get_plot method,
+    like PlotDialog, or BaseTransformWidget (see below)
+
+    Args:
+        parent (QWidget): Parent widget
+        manager (PlotManager): Plot manager
+    """
+
+    def __init__(self, parent: QW.QWidget, manager: PlotManager) -> None:
+        self.parent = parent
+        self.manager = manager
+        self.item: TrImageItem = None
+        self.item_original_state: tuple[bool, bool, bool, bool] = None
+        self.item_original_crop: tuple[float, float, float, float] = None
+        self.item_original_transform: tuple[float, float, float] = None
+        self.output_array: np.ndarray = None
+
+    # ------Public API----------------------------------------------------------
+    def get_result(self) -> np.ndarray:
+        """Return the result array
+
+        Returns:
+            numpy.ndarray: Result array
+        """
+        return self.output_array
+
+    def set_item(self, item: TrImageItem) -> None:
+        """Set associated item
+
+        Args:
+            item (TrImageItem): Image item
+        """
+        assert isinstance(item, TrImageItem)
+        self.item = item
+        self.item_original_state = (
+            item.can_select(),
+            item.can_move(),
+            item.can_resize(),
+            item.can_rotate(),
+        )
+        self.item_original_crop = item.get_crop()
+        self.item_original_transform = item.get_transform()
+
+        self.item.set_selectable(True)
+        self.item.set_movable(True)
+        self.item.set_resizable(False)
+        self.item.set_rotatable(True)
+
+        item.set_lut_threshold(2.0)
+        item.set_interpolation(INTERP_LINEAR)
+        plot = self.manager.get_plot()
+        plot.add_item(self.item)
+
+        # Setting the item as active item (even if the cropping rectangle item
+        # will also be set as active item just below), for the image tools to
+        # register this item (contrast, ...):
+        plot.set_active_item(self.item)
+        self.item.unselect()
+
+    def unset_item(self) -> None:
+        """Unset the associated item, freeing memory"""
+        plot = self.manager.get_plot()
+        plot.del_item(self.item)
+        self.item = None
+
+    def reset(self) -> None:
+        """Reset crop/transform image settings"""
+        self.item.set_crop(*self.item_original_crop)
+        self.item.set_transform(*self.item_original_transform)
+        self.reset_transformation()
+        self.apply_transformation()
+
+    def reset_transformation(self) -> None:
+        """Reset transformation"""
+        raise NotImplementedError
+
+    def apply_transformation(self) -> None:
+        """Apply transformation, e.g. crop or rotate"""
+        raise NotImplementedError
+
+    def compute_transformation(self) -> np.ndarray:
+        """Compute transformation, return compute output array
+
+        Returns:
+            numpy.ndarray: Output array
+        """
+        raise NotImplementedError
+
+    # ------Private API---------------------------------------------------------
+    def restore_original_state(self) -> None:
+        """Restore item original state"""
+        select, move, resize, rotate = self.item_original_state
+        self.item.set_selectable(select)
+        self.item.set_movable(move)
+        self.item.set_resizable(resize)
+        self.item.set_rotatable(rotate)
+
+    def accept_changes(self) -> None:
+        """Computed rotated/cropped array and apply changes to item"""
+        self.restore_original_state()
+        self.apply_transformation()
+        self.output_array = self.compute_transformation()
+        # Ignoring image position changes
+        pos_x0, pos_y0, _angle, sx, sy, hf, vf = self.item_original_transform
+        _pos_x0, _pos_y0, angle, _sx, _sy, hf, vf = self.item.get_transform()
+        self.item.set_transform(pos_x0, pos_y0, angle, sx, sy, hf, vf)
+
+    def reject_changes(self) -> None:
+        """Restore item original transform settings"""
+        self.restore_original_state()
+        self.item.set_crop(*self.item_original_crop)
+        self.item.set_transform(*self.item_original_transform)
+
+
+class BaseTransformWidget(QW.QWidget):
+    """Base transform widget: see for example rotatecrop.py
+
+    Args:
+        parent (QWidget): Parent widget
+        toolbar (bool | None): Whether to show toolbar. Defaults to False.
+        options (dict | None): Plot options. Defaults to None.
+    """
+
+    def __init__(
+        self,
+        parent: QW.QWidget,
+        toolbar: bool = False,
+        options: PlotOptions | dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(parent)
+        if isinstance(options, dict):
+            options = PlotOptions(**options)
+        options = options if options is not None else PlotOptions()
+        options.type = "image"
+        self.plot_widget = PlotWidget(self, options=options, toolbar=toolbar)
+        self.plot_widget.manager.register_all_image_tools()
+        hlayout = QW.QHBoxLayout()
+        self.add_buttons_to_layout(hlayout)
+
+        vlayout = QW.QVBoxLayout()
+        vlayout.addWidget(self.plot_widget)
+        vlayout.addLayout(hlayout)
+        self.setLayout(vlayout)
+
+    def get_plot(self) -> BasePlot:
+        """Required for BaseTransformMixin
+
+        Returns:
+            BasePlot: Plot widget
+        """
+        return self.plot_widget.get_plot()
+
+    def add_buttons_to_layout(
+        self, layout: QW.QBoxLayout, apply=True, reset=True
+    ) -> None:
+        """Add tool buttons to layout
+
+        Args:
+            layout (QBoxLayout): Layout
+            apply (bool | None): Add apply button. Defaults to True.
+            reset (bool | None): Add reset button. Defaults to True.
+        """
+        if reset:
+            self.__add_reset_button(layout)
+        if apply:
+            self.__add_apply_button(layout)
+
+    def __add_apply_button(self, layout: QW.QBoxLayout) -> None:
+        """Add the standard apply button
+
+        Args:
+            layout (QBoxLayout): Layout
+        """
+        apply_btn = create_toolbutton(
+            self.plot_widget,
+            text=_("Apply"),
+            icon=get_icon("apply.png"),
+            triggered=self.apply_transformation,
+            autoraise=False,
+        )
+        layout.addWidget(apply_btn)
+        layout.addStretch()
+
+    def __add_reset_button(self, layout: QW.QBoxLayout) -> None:
+        """Add the standard reset button
+
+        Args:
+            layout (QBoxLayout): Layout
+        """
+        edit_options_btn = create_toolbutton(
+            self.plot_widget,
+            text=_("Reset"),
+            icon=get_icon("eraser.png"),
+            triggered=self.reset,
+            autoraise=False,
+        )
+        layout.addWidget(edit_options_btn)
+        layout.addStretch()
+
+    def reset(self) -> None:
+        """Reset crop/transform image settings"""
+        return NotImplementedError
+
+    def apply_transformation(self) -> None:
+        """Apply transformation, e.g. crop or rotate"""
+        return NotImplementedError
+
+
+class BaseMultipleTransformWidget(QW.QTabWidget):
+    """Base Multiple Transform Widget
+
+    Transform several :py:class:`.image.TrImageItem` plot items
+
+    Args:
+        parent: Parent widget
+        options: Plot options. Defaults to None.
+    """
+
+    TRANSFORM_WIDGET_CLASS: TransfWidget  # to be defined in subclass
+
+    def __init__(self, parent: QW.QWidget, options: PlotOptions | None = None):
+        QW.QTabWidget.__init__(self, parent)
+        self.options = options
+        self.output_arrays = None
+
+    def set_items(self, *items: TrImageItem) -> None:
+        """Set the associated items
+
+        Args:
+            *items (TrImageItem): Items
+        """
+        for item in items:
+            self.add_item(item)
+
+    def add_item(self, item: TrImageItem) -> TransfWidget:
+        """Add item to widget
+
+        Args:
+            item (TrImageItem): Item
+        """
+        widget: TransfWidget = self.TRANSFORM_WIDGET_CLASS(self, options=self.options)
+        widget.transform.set_item(item)
+        self.addTab(widget, item.title().text())
+        return widget
+
+    def clear_items(self) -> None:
+        """Clear all items, freeing memory"""
+        self.items = None
+        for index in range(self.count()):
+            self.widget(index).unset_item()
+        self.clear()
+
+    def reset(self) -> None:
+        """Reset transform image settings"""
+        for index in range(self.count()):
+            self.widget(index).reset()
+
+    def accept_changes(self) -> None:
+        """Accept all changes"""
+        self.output_arrays = []
+        for index in range(self.count()):
+            widget: TransfWidget = self.widget(index)
+            widget.transf.accept_changes()
+            self.output_arrays.append(widget.transf.output_array)
+
+    def reject_changes(self) -> None:
+        """Reject all changes"""
+        for index in range(self.count()):
+            self.widget(index).reject_changes()

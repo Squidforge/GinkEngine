@@ -1,0 +1,2 @@
+Version: 1.8.3
+Arguments: ['C:\\hostedtoolcache\\windows\\Python\\3.12.7\\x64\\Scripts\\delvewheel', 'repair', '-w', 'repaired_wheels\\', 'dist\\adbc_driver_manager-1.3.0-cp312-cp312-win_amd64.whl']

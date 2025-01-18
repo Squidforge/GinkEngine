@@ -1,0 +1,51 @@
+# -*- coding: utf-8 -*-
+#
+# Licensed under the terms of the BSD 3-Clause
+# (see plotpy/LICENSE for details)
+
+# -*- coding: utf-8 -*-
+"""
+Testing plotpy QtDesigner plugins
+
+These plugins provide PlotWidget objects
+embedding in GUI layouts directly from QtDesigner.
+"""
+
+# guitest: show
+
+import os
+
+import pytest
+from guidata.qthelpers import qt_app_context
+
+from plotpy.builder import make
+from plotpy.tests import data as ptd
+
+try:
+    from plotpy.widgets.qtdesigner import loadui
+except ImportError:
+    # PySide6 known to fail
+    pytest.skip(
+        "PySide6 does not support QPyDesignerCustomWidgetPlugin",
+        allow_module_level=True,
+    )
+
+FormClass = loadui(os.path.splitext(__file__)[0] + ".ui")
+
+
+class WindowTest(FormClass):
+    def __init__(self, image_data):
+        super().__init__()
+        plot = self.imagewidget.plot
+        plot.add_item(make.image(image_data))
+        self.setWindowTitle("QtDesigner plugins example")
+
+
+def test_qtdesigner():
+    with qt_app_context(exec_loop=True):
+        form = WindowTest(ptd.gen_image4(200, 200))
+        form.show()
+
+
+if __name__ == "__main__":
+    test_qtdesigner()

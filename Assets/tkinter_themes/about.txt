@@ -1,0 +1,11 @@
+aquablue, Aquativo, Arc, blue, BlueElegance, clearlooks, keramik, kroc, plastic, radience, and WinXp-Blue are themes that all come from https://chiselapp.com/user/sgolovan/repository/ttk-themes/home. Some tcl files and folder names were renamed for the automatic styles function to work properly.
+
+
+
+To add styles:
+
+1. Create a folder with the same name as the style (namespace eval ttk::theme::STYLENAME)
+
+2. Create a .tcl file with the same name as the style
+
+Program will return a file not found error if both of these requirements aren't met 

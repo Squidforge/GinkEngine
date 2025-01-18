@@ -1,0 +1,3 @@
+[gui_scripts]
+plotpy-benchmarks = plotpy.tests.benchmarks:run
+plotpy-tests = plotpy.tests:run

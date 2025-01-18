@@ -1,0 +1,13 @@
+{
+  "base_url": "/",
+  "hostname": "localhost",
+  "password": false,
+  "pid": 3004,
+  "port": 8888,
+  "root_dir": "C:\\Users\\squid\\Desktop\\GinkEngine\\GinkEngine\\Core\\WPy64-31280\\notebooks",
+  "secure": false,
+  "sock": "",
+  "token": "d5e5627eb1857e52619bf6d65f90e20060cb7a44dc16c017",
+  "url": "http://localhost:8888/",
+  "version": "2.14.2"
+}
