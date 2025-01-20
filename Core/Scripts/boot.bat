@@ -1,2 +1,2 @@
-powershell -Command "Start-Process 'C:/Program Files (x86)/Steam/steamapps/common/Lethal Company/Lethal Company.exe '"
+powershell -Command "Start-Process 'C:\Users\squid\Desktop\GinkEngine\GinkEngine\Core\WPy64-31280\Spyder.exe'"
 exit 

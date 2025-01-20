@@ -65,14 +65,14 @@ def link_ginko():
     )
 
     if file_path:
-        response = messagebox.askokcancel("Warning!", "Linking GinkEngine to Puttle will clone Puttles game files into the GinkEngine folder. It would be considered piracy if you shared that folder in any way without permission. For sharing mods, please us GinkEngines built in 'Create Mods' feature. Linking will also cause all potential already installed mods to be deleted from the game installation, but they will remain re-installable. Do you want to continue?")
+        response = messagebox.askokcancel("Warning!", "Linking GinkEngine to Puttlerr will clone Puttlerrs game files into the GinkEngine folder. It would be considered piracy if you shared that folder in any way without permission. For sharing mods, please us GinkEngines built in 'Create Mods' feature. Linking will also cause all potential already installed mods to be deleted from the game installation, but they will remain re-installable. Do you want to continue?")
         if response:
-            log_("Linking Puttle(Ginko)...")
+            log_("Linking Puttlerr(Ginko)...")
 
             parent_directory = os.path.dirname(file_path)
             print(f"Selected file path: {file_path}")
-            log_(f"Set Puttle(Ginko) parent directory to {parent_directory}")
-            log_(f"Set Standard Puttle(Ginko) exe to {file_path}")
+            log_(f"Set Puttlerr(Ginko) parent directory to {parent_directory}")
+            log_(f"Set Standard Puttlerr(Ginko) exe to {file_path}")
 
             with open("../../user.config", "r") as file:
                 lines = file.readlines()
@@ -163,11 +163,11 @@ def link_ginko():
                     shutil.copy2(source_file, destination_file)
                     progress_bar.update(1)
 
-            log_("Puttle(Ginko) has been linked successfully")
+            log_("Puttler(Ginko) has been linked successfully")
 
-            messagebox.showinfo("Success!", "Puttle(Ginko) has been linked to GinkEngine successfully!")
+            messagebox.showinfo("Success!", "Puttler(Ginko) has been linked to GinkEngine successfully!")
         else:
-            print("Puttle(Ginko) not linked")
+            print("Puttler(Ginko) not linked")
 
 
     else:
@@ -199,7 +199,75 @@ def play_standard():
 
         log_("Started Standard Game")
     else:
-        messagebox.showwarning("Puttle(Ginko) not linked", "Go to Options -> Link Puttle, and select the .exe file named 'Puttle.exe' in your Steam Puttle folder")
+        log_("Couldn't start Standard Game")
+
+        messagebox.showwarning("Puttler(Ginko) not linked", "Go to Options -> Link Puttler, and select the .exe file named 'Puttler.exe' in your Steam Puttler folder")
+
+def play_modded():
+    with open("../../user.config", "r") as file:
+        lines = file.readlines()
+    
+    exename = fr"{os.path.basename(lines[2])}"
+
+    exe_path = os.path.abspath(f"../../../DONT_SHARE/Game Files/{exename}")
+
+    with open("../../Scripts/boot.bat", "w") as file:
+        message_ = f"Start-Process '{exe_path}'"
+        message2_ = f'powershell -Command "{message_}"'
+        message2_ = message2_.replace("\n", " ")
+
+        file.write(message2_)
+
+    with open("../../Scripts/boot.bat", "a") as file:
+        file.write("\n")
+        file.write("exit \n")
+
+    print(exe_path)
+
+    if lines[2] != "none":
+        batch_file_relative = "../../Scripts/boot.bat"
+        batch_file_absolute = os.path.abspath(batch_file_relative)
+
+        subprocess.run(["start", "cmd", "/k", batch_file_absolute], shell=True)
+
+        log_("Started Modded Game")
+    else:
+        log_("Couldn't start Modded Game")
+        # Show a warning if the file doesn't exist
+        messagebox.showwarning(
+            "Puttler(Ginko) not linked",
+            "Go to Options -> Link Puttler, and select the .exe file named 'Puttler.exe' in your Steam Puttler folder",
+        )
+
+def start_tool(tool_path):
+    with open("../../Scripts/boot.bat", "w") as file:
+        message_ = f"Start-Process '{tool_path}'"
+        message2_ = f'powershell -Command "{message_}"'
+        message2_ = message2_.replace("\n", " ")
+
+        file.write(message2_)
+
+    with open("../../Scripts/boot.bat", "a") as file:
+        file.write("\n")
+        file.write("exit \n")
+
+    log_(f"Running {tool_path}")
+
+    if os.path.exists(f"{tool_path}"):
+        batch_file_relative = "../../Scripts/boot.bat"
+        batch_file_absolute = os.path.abspath(batch_file_relative)
+
+        subprocess.run(["start", "cmd", "/k", batch_file_absolute], shell=True)
+
+        log_(f"Started Tool {tool_path}")
+    else:
+        log_(f"Couldnt run {tool_path}")
+        # Show a warning if the file doesn't exist
+        messagebox.showerror(
+            "Error",
+            f"Couldn't start tool: {tool_path}",
+        )
+
 
 def is_admin():
     try:
@@ -236,7 +304,7 @@ menu_bar = tk.Menu(root)
 file_menu = tk.Menu(menu_bar, tearoff=0)  # tearoff=0 removes the dashed line
 
 # Link Ginko Option
-file_menu.add_command(label="Link Puttle", command=lambda: link_ginko())
+file_menu.add_command(label="Link Puttler", command=lambda: link_ginko())
 file_menu.add_separator()  # Add a separator line
 
 # Add themes to Options
@@ -276,30 +344,30 @@ menu_bar.add_cascade(label="Help", menu=help_menu)
 
 tools_menu = tk.Menu(menu_bar, tearoff=0)
 tools_menu.add_command(label="IDEs", state="disabled") # IDEs
-tools_menu.add_command(label="VS Code")
+tools_menu.add_command(label="VS Code", command=lambda: start_tool(os.path.abspath("../VS Code.exe")))
 
 # Add Jupyter tools
 jupyter_menu = tk.Menu(tools_menu, tearoff=0)
-jupyter_menu.add_command(label="Jupyter Lab")
-jupyter_menu.add_command(label="Jupyter Notebook")
+jupyter_menu.add_command(label="Jupyter Lab", command=lambda: start_tool(os.path.abspath("../Jupyter Lab.exe")))
+jupyter_menu.add_command(label="Jupyter Notebook", command=lambda: start_tool(os.path.abspath("../Jupyter Notebook.exe")))
 tools_menu.add_cascade(label="Jupyter", menu=jupyter_menu)
 
-tools_menu.add_command(label="Spyder")
+tools_menu.add_command(label="Spyder", command=lambda: start_tool(os.path.abspath("../Spyder.exe")))
 
 tools_menu.add_separator()
 
 tools_menu.add_command(label="Modding Tools", state="disabled") # Mod tools
 
-tools_menu.add_command(label="AssetStudio")
-tools_menu.add_command(label="UABE")
-
+tools_menu.add_command(label="AssetStudio", command=lambda: start_tool(os.path.abspath("../../AssetStudio/AssetStudioGUI.exe")))
+tools_menu.add_command(label="UABE", command=lambda: start_tool(os.path.abspath("../../UABE/AssetBundleExtractor.exe")))
+tools_menu.add_command(label="dnSpy", command=lambda: start_tool(os.path.abspath("../../dnSpy/dnSpy.exe")))
 
 menu_bar.add_cascade(label="Tools", menu=tools_menu)
 
 # Add option to play modded
 
 play_menu = tk.Menu(menu_bar, tearoff=0)
-play_menu.add_command(label="Play Modded")
+play_menu.add_command(label="Play Modded", command=lambda:play_modded())
 play_menu.add_command(label="Play Standard", command=lambda:play_standard())
 
 menu_bar.add_cascade(label="Play", menu=play_menu)
