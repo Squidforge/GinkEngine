@@ -8,7 +8,6 @@ from tqdm import tqdm
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-from datetime import date
 from datetime import datetime
 
 
