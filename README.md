@@ -1,9 +1,9 @@
 # GinkEngine
-How to install:
+How to start:
 1. Download release version (.zip or .7z format)
 2. Unpack the downloaded archive and start GinkEngine.bat
-3. In the menu bar, hover over "Options" and select "Link Puttle"
-4. Select the games .exe file
+3. In the menu bar, click on "Options" and select "Link Puttler"
+4. Select the games .exe file and it will then say that it has linked successfully. In the menu bar, go to Play -> Start modded, this will ensure BepInEx gets fully installed.
 5. Game files will be cloned into "DONT_SHARE/Game Files", these are the game files you will modify. Linking also installs BepInEx by default.
 6. If you want to restart the modding process, simply re-link the game the same way you did before and all modified files will go away.
 

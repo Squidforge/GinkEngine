@@ -1,0 +1,7 @@
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.csproj.AssemblyReference.cache
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.csproj.CoreCompileInputs.cache
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\BepInEx\pluginsexit\HelloWorldExample.dll
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\BepInEx\pluginsexit\HelloWorldExample.pdb
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.csproj.CopyComplete
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.dll
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.pdb

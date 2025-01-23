@@ -65,14 +65,14 @@ def link_ginko():
     )
 
     if file_path:
-        response = messagebox.askokcancel("Warning!", "Linking GinkEngine to Puttlerr will clone Puttlerrs game files into the GinkEngine folder. It would be considered piracy if you shared that folder in any way without permission. For sharing mods, please us GinkEngines built in 'Create Mods' feature. Linking will also cause all potential already installed mods to be deleted from the game installation, but they will remain re-installable. Do you want to continue?")
+        response = messagebox.askokcancel("Warning!", "Linking GinkEngine to Puttler will clone Puttlerrs game files into the GinkEngine folder. It would be considered piracy if you shared that folder in any way without permission. For sharing mods, please us GinkEngines built in 'Create Mods' feature. Linking will also cause all potential already installed mods to be deleted from the game installation, but they will remain re-installable. Do you want to continue?")
         if response:
-            log_("Linking Puttlerr(Ginko)...")
+            log_("Linking Puttler(Ginko)...")
 
             parent_directory = os.path.dirname(file_path)
             print(f"Selected file path: {file_path}")
-            log_(f"Set Puttlerr(Ginko) parent directory to {parent_directory}")
-            log_(f"Set Standard Puttlerr(Ginko) exe to {file_path}")
+            log_(f"Set Puttler(Ginko) parent directory to {parent_directory}")
+            log_(f"Set Standard Puttler(Ginko) exe to {file_path}")
 
             with open("../../user.config", "r") as file:
                 lines = file.readlines()
@@ -132,7 +132,7 @@ def link_ginko():
 
             bepinex = "../../BepInEx"
 
-            response = messagebox.askquestion("Question", "Does the linked game requre the x64 version of BepInEx?")
+            response = messagebox.askquestion("x64?", "Does the linked game requre the x64 version of BepInEx?")
             if response == 'yes':
                 bepinex = "../../BepInExx64"
 
@@ -183,7 +183,7 @@ def play_standard():
         message2_ = f'powershell -Command "{message_}"'
         message2_ = message2_.replace("\n", " ")
 
-        file.write(message2_)
+        file.writelines(message2_)
     
     with open("../../Scripts/boot.bat", "a") as file:
         file.write("\n")
@@ -204,6 +204,11 @@ def play_standard():
         messagebox.showwarning("Puttler(Ginko) not linked", "Go to Options -> Link Puttler, and select the .exe file named 'Puttler.exe' in your Steam Puttler folder")
 
 def play_modded():
+
+    log_("Building BepInEx mods...")
+    build_mods()
+    log_("Build function passed. If a mod doesn't run, check references in visual studio and ensure they all point to a path within the Puttler Data or BepInEx folder. Alternatively, you can provide your own dll's trough the dll folder in the games GinkEngine folder")
+
     with open("../../user.config", "r") as file:
         lines = file.readlines()
     
@@ -268,6 +273,143 @@ def start_tool(tool_path):
             f"Couldn't start tool: {tool_path}",
         )
 
+def start_visual_studio():
+
+    with open("../../user.config", "r") as file:
+        lines = file.readlines()
+
+    tool_path = lines[3]
+
+    if tool_path == "none":
+        response = messagebox.askquestion("Connect Visual Studio", "Visual studio does unfortunately not come pre-installed with GinkEngine. If you don't have Visual Studio installed, please install Visual Studio 2022 Community from https://visualstudio.microsoft.com/vs/. If you already have Visual Studio installed, would you like to connect the exe to GinkEngine?")
+        if response == 'yes':
+            tool_path = filedialog.askopenfilename(
+                initialdir=r"C:\Program Files (x86)",
+                filetypes=[("Executable Files", "*.exe")]
+            )
+            log_("Visual Studio connected")
+    
+    lines[3] = tool_path
+    with open("../../user.config", "w") as file:
+        file.writelines(lines)
+
+    if tool_path == "none":
+        log_("Visual Studio path not found")
+        return
+    
+    with open("../../Scripts/boot.bat", "w") as file:
+        message_ = f"Start-Process '{tool_path}'"
+        message2_ = f'powershell -Command "{message_}"'
+        message2_ = message2_.replace("\n", " ")
+
+        file.write(message2_)
+
+    with open("../../Scripts/boot.bat", "a") as file:
+        file.write("\n")
+        file.write("exit \n")
+
+    log_(f"Running {tool_path}")
+
+    if os.path.exists(f"{tool_path}"):
+        batch_file_relative = "../../Scripts/boot.bat"
+        batch_file_absolute = os.path.abspath(batch_file_relative)
+
+        subprocess.run(["start", "cmd", "/k", batch_file_absolute], shell=True)
+
+        log_(f"Started Tool {tool_path}")
+    else:
+        log_(f"Couldnt run {tool_path}")
+        # Show a warning if the file doesn't exist
+        messagebox.showerror(
+            "Error",
+            f"Couldn't start tool: {tool_path}",
+        )
+
+def show_bepinex_console():
+    if os.path.exists("../../../DONT_SHARE/Game Files/BepInEx/config/BepInEx.cfg"):
+        log_("Turning on BepInEx console window")
+        with open("../../../DONT_SHARE/Game Files/BepInEx/config/BepInEx.cfg", "r") as file:
+            lines = file.readlines()
+
+        if len(lines) > 48:
+            lines[47] = "Enabled = true\n"
+
+            log_("BepInEx show console setting turned on")
+
+            with open("../../../DONT_SHARE/Game Files/BepInEx/config/BepInEx.cfg", "w") as file:
+                file.writelines(lines)
+        else:
+            log_("Could not turn BepInEx show console setting on, config file not long enough")
+            messagebox.showerror(
+                "Error",
+                f"Could not find appropriate config file for this action. To solve this, please make sure you have BepInEx installed on your game in the DONT_SHARE folder, and also that you have booted the game as modded prior to trying to configure this setting.",
+            )
+    else:
+        log_("Could not turn BepInEx show console setting on, BepInEx not found")
+        messagebox.showerror(
+            "Error",
+            f"BepInEx config file not found, please link your game first. If you already have a linked game, please start that game by going to Play -> Modded before trying to change this setting",
+        )
+
+def hide_bepinex_console():
+    if os.path.exists("../../../DONT_SHARE/Game Files/BepInEx/config/BepInEx.cfg"):
+        log_("Turning on BepInEx console window")
+        with open("../../../DONT_SHARE/Game Files/BepInEx/config/BepInEx.cfg", "r") as file:
+            lines = file.readlines()
+
+        if len(lines) > 48:
+            lines[47] = "Enabled = false\n"
+
+            log_("BepInEx show console setting turned off")
+
+            with open("../../../DONT_SHARE/Game Files/BepInEx/config/BepInEx.cfg", "w") as file:
+                file.writelines(lines)
+        else:
+            log_("Could not turn BepInEx show console setting off, config file not long enough")
+            messagebox.showerror(
+                "Error",
+                f"Could not find appropriate config file for this action. To solve this, please make sure you have BepInEx installed on your game in the DONT_SHARE folder, and also that you have booted the game as modded prior to trying to configure this setting.",
+            )
+    else:
+        log_("Could not turn BepInEx show console setting off, BepInEx not found")
+        messagebox.showerror(
+            "Error",
+            f"BepInEx config file not found, please link your game first. If you already have a linked game, please start that game by going to Play -> Modded before trying to change this setting",
+        )
+
+def find_folders_with_csproj(root_dir):
+    folders_with_csproj = []
+    
+    for foldername, subfolders, filenames in os.walk(root_dir):
+        if any(file.endswith(".csproj") for file in filenames):
+            folders_with_csproj.append(foldername)
+    
+    return folders_with_csproj
+
+def build_mods():
+    folders = find_folders_with_csproj("../../../DONT_SHARE/Game Files/GinkEngine/raw")
+
+    with open("../../Scripts/build_mods.bat", "w") as file:
+        file.write("")
+
+    for folder in folders:
+
+        log_(f"Setting up mod in folder {folder}")
+
+        with open("../../Scripts/build_mods.bat", "a") as file:
+            message_ = f'cd "{os.path.abspath(f"../../../Game Files/GinkEngine/raw/{folder}")}"\n dotnet msbuild  -p:OutputPath="{os.path.abspath("../../../DONT_SHARE/Game Files/BepInEx/plugins")}"\n'
+
+            file.write(message_)
+
+    with open("../../Scripts/build_mods.bat", "a") as file:
+        file.write("exit")
+
+    batch_file_relative = "../../Scripts/build_mods.bat"
+    batch_file_absolute = os.path.abspath(batch_file_relative)
+
+    subprocess.run(["start", "cmd", "/k", batch_file_absolute], shell=True)
+
+    log_("Started building all mods")
 
 def is_admin():
     try:
@@ -306,6 +448,9 @@ file_menu = tk.Menu(menu_bar, tearoff=0)  # tearoff=0 removes the dashed line
 # Link Ginko Option
 file_menu.add_command(label="Link Puttler", command=lambda: link_ginko())
 file_menu.add_separator()  # Add a separator line
+file_menu.add_command(label="Turn on BepInEx console", command=lambda: show_bepinex_console())
+file_menu.add_command(label="Turn off BepInEx console", command=lambda: hide_bepinex_console())
+file_menu.add_separator()  # Add a separator line
 
 # Add themes to Options
 theme_menu = tk.Menu(file_menu, tearoff=0)
@@ -343,7 +488,11 @@ menu_bar.add_cascade(label="Help", menu=help_menu)
 # Create the "Tools" menu
 
 tools_menu = tk.Menu(menu_bar, tearoff=0)
-tools_menu.add_command(label="IDEs", state="disabled") # IDEs
+tools_menu.add_command(label="Visual Studio", command= start_visual_studio)
+
+tools_menu.add_separator()
+
+tools_menu.add_command(label="Code Editors", state="disabled") # IDEs
 tools_menu.add_command(label="VS Code", command=lambda: start_tool(os.path.abspath("../VS Code.exe")))
 
 # Add Jupyter tools
