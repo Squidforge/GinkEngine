@@ -1,12 +1,11 @@
 import tkinter as tk
-import darkdetect
-import ttkbootstrap as ttk
 import os
 import subprocess
 import ctypes
 import sys
 import shutil
 from tqdm import tqdm
+from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 from datetime import datetime
@@ -38,6 +37,23 @@ def on_open():
 def on_exit():
     log_("In-app exit triggered")
     root.quit()
+
+def switch_style(style_):
+    if style_ not in style.theme_names():
+        root.tk.call('source', f'../../../Assets/tkinter_themes/{style_}/{style_}.tcl')
+    
+    style.theme_use(style_)
+    log_(f"Using theme {style_}")
+
+    # Save style to config file
+
+    with open("../../user.config", "r") as file:
+        lines = file.readlines()
+    
+    lines[0] = f"{style_}\n"
+
+    with open("../../user.config", "w") as file:
+        file.writelines(lines)
 
 def link_ginko():
 
@@ -403,27 +419,22 @@ def run_as_admin():
     script = sys.argv[0]
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{script}"', None, 1)
 
-def dark_listener(theme):
-    if theme == "Dark":
-        s.theme_use('darkly')
-    else:
-        s.theme_use('flatly')
-
 # if not is_admin():
 #         run_as_admin()
 #         sys.exit(0)
 
-root = ttk.Window()
-root.title("GinkEngine V0.1")
+root = tk.Tk()
+root.title("GinkEngine V0.9")
 root.geometry("600x800")
 
-s=ttk.Style()
-if darkdetect.isDark():
-    s.theme_use('darkly')
-else:
-    s.theme_use('flatly')
-
 # Create a Menu widget
+style = ttk.Style()
+print(style.theme_names())
+
+with open("../../user.config", "r") as file:
+    style_ = file.readline().strip()  # Read the first line and remove leading/trailing whitespace
+    switch_style(style_)
+
 menu_bar = tk.Menu(root)
 
 
@@ -436,6 +447,27 @@ file_menu.add_separator()  # Add a separator line
 file_menu.add_command(label="Turn on BepInEx console", command=lambda: show_bepinex_console())
 file_menu.add_command(label="Turn off BepInEx console", command=lambda: hide_bepinex_console())
 file_menu.add_separator()  # Add a separator line
+
+# Add themes to Options
+theme_menu = tk.Menu(file_menu, tearoff=0)
+theme_menu.add_command(label="default", command=lambda: switch_style("default"))
+theme_menu.add_command(label="clam", command=lambda: switch_style("clam"))
+theme_menu.add_command(label="winnative", command=lambda: switch_style("winnative"))
+theme_menu.add_command(label="classic", command=lambda: switch_style("classic"))
+theme_menu.add_command(label="vista", command=lambda: switch_style("vista"))
+theme_menu.add_command(label="xpnative", command=lambda: switch_style("xpnative"))
+
+
+for folder_name in os.listdir(style_path):
+            folder_path = os.path.join(style_path, folder_name)
+            # Ensure only folders are added
+            if os.path.isdir(folder_path):
+                theme_menu.add_command(
+                    label=folder_name, 
+                    command=lambda name=folder_name: switch_style(f"{name}")
+                )
+
+file_menu.add_cascade(label="Themes", menu=theme_menu)
 
 # More options
 file_menu.add_separator()  # Add a separator line

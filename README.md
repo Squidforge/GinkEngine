@@ -31,6 +31,7 @@ Please note:
 GinkEngine uses WinPython, along with the software included in it, such as Jupyter Lab, Jupyter Notebook, Spyder, and VS Code. The specific version of WinPython used is Winpython64-3.12.8.0slim.7z. You can download it from the official WinPython GitHub Releases Page.
 
 
+The Azure theme was made on rdbende(https://github.com/rdbende/Azure-ttk-theme) and is licensed under the MIT license. 
 
 Release version AssetStudio.net6.v0.16.47 of AssetStudio is included in GinkEngine, provided under the MIT license. This tool is released by Perfare (https://github.com/Perfare) and will be removed from GinkEngine at request.
 
