@@ -4,10 +4,12 @@ import subprocess
 import ctypes
 import sys
 import shutil
+import zipfile
 from tqdm import tqdm
-from tkinter import ttk
+from tkinter import ttk, StringVar, Toplevel
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import PhotoImage
 from datetime import datetime
 
 today = datetime.now()
@@ -409,6 +411,300 @@ def build_mods():
 
     log_("Started building all mods")
 
+def files_are_identical(file1, file2):
+    """Compares two files byte-by-byte."""
+
+    # Check if the file sizes match
+    with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
+        return f1.read() == f2.read()
+
+    print(f"Exported modded file: {file2}")
+    return False
+
+def build_final_mod(mod_name, author_name, description_info):
+
+    build_mods()
+
+    with open("../../user.config", "r") as file:
+        lines = file.readlines()
+
+    if lines[1] == "none":
+        log_("Couldn't build final mod because Puttler isn't linked")
+        messagebox.showerror(
+            "Error",
+            f"Please link Puttler(Ginko) before building final mod",
+        )
+    
+    folder1 = lines[1].strip().replace("/", "\\")
+
+    folder2 = "../../../DONT_SHARE/Game Files/"
+
+    folder3 = f"../../../Mods/{mod_name}"
+    
+    filecount = 0
+    
+    """
+    Compare files in folder2 to folder1 and save the differing files into output_folder, keeping the same path structure.
+    """
+    for root, dirs, files in os.walk(folder2):
+        for file in files:
+            # Skip .exe files and Assembly-CSharp.dll
+            if file.endswith(".exe") or file == "Assembly-CSharp.dll":
+                continue
+            
+            # Skip files in the GinkEngine/raw directory
+            relative_path = os.path.relpath(os.path.join(root, file), folder2)
+
+            # Define corresponding file paths in folder1 and folder3
+            file_in_folder1 = os.path.join(folder1, relative_path)
+            file_in_folder2 = os.path.join(folder2, relative_path)
+            file_in_folder3 = os.path.join(folder3, relative_path)
+
+            if "GinkEngine\\raw" in (file_in_folder2):
+                continue
+
+            if os.path.exists(file_in_folder1):
+                if files_are_identical(file_in_folder1, file_in_folder2):
+                    continue  # Files are identical, skip copying
+
+            # Ensure the folder structure exists in folder3
+            os.makedirs(os.path.dirname(file_in_folder3), exist_ok=True)
+            
+            # Copy the file from folder2 to folder3
+            print(f"Compared {file_in_folder1} to {file_in_folder2} and found differences")
+            shutil.copy2(file_in_folder2, file_in_folder3)
+
+            filecount = filecount + 1
+
+    os.makedirs(f"{folder3}/GinkEngine", exist_ok=True)
+
+    with open(f"{folder3}/GinkEngine/about_mod.ginko", 'w') as file:
+        file.write(f"{mod_name}\n{author_name}\n{description_info}")
+
+    messagebox.showinfo("Success!", f"{mod_name} has been exported successfully!")
+
+    log_(f"Successfully exported {filecount} file(s) to mod {mod_name}")
+
+def install_mod(source_folder):
+    mod_name = source_folder
+
+    with open("../../user.config", "r") as file:
+        lines = file.readlines()
+
+    if lines[1] == "none":
+        log_("Couldn't install mod because Puttler isn't linked")
+        messagebox.showerror(
+            "Error",
+            f"Please link Puttler(Ginko) before installing any mods",
+        )
+
+    with open(f"../../../Mods/{mod_name}/GinkEngine/about_mod.ginko", 'r') as file:
+        lines = file.readlines()
+    
+    author_name = lines[1]
+
+    response = messagebox.askquestion("Install?", f"Are you sure you want to install '{mod_name}' by {author_name}?")
+    if response == 'no':
+        return
+
+    source_folder = f"../../../Mods/{mod_name}"
+    destination_folder = "../../../DONT_SHARE/Game Files/"
+
+    if not os.path.exists(source_folder):
+        messagebox.showerror(
+            "Error",
+            f"Could not find mod, please try another mod",
+        )
+        log_("Could not find mod")
+        return
+
+    if not os.path.exists(destination_folder):
+        messagebox.showerror(
+            "Error",
+            f"Please link Puttler first",
+        )
+        log_("Could not install mod because Puttler wasn't linked")
+        return
+    
+    for root, _, files in os.walk(source_folder):
+        for file in files:
+            source_file = os.path.join(root, file)
+            relative_path = os.path.relpath(root, source_folder)
+            dest_dir = os.path.join(destination_folder, relative_path)
+            os.makedirs(dest_dir, exist_ok=True)  # Create subdirectories as needed
+            
+            dest_file = os.path.join(dest_dir, file)
+            shutil.copy2(source_file, dest_file)  # Copy the file, preserving metadata
+            print(f"Copied: {source_file} -> {dest_file}")
+
+    refresh_mod_dropdown()
+
+    log_(f"{mod_name} was installed successfully")
+
+    messagebox.showinfo("Success!", f"{mod_name} was installed successfully!")
+
+def refresh_mod_dropdown():
+    log_("Mod dropdown refreshed")
+    mod_folders = [folder for folder in os.listdir("../../../Mods/") if os.path.isdir(os.path.join("../../../Mods/", folder))]
+    
+    if mod_folders:
+        mod_combobox['values'] = mod_folders  # Update dropdown options
+        mod_combobox.set(mod_folders[0])  # Default to the first mod in the list
+    else:
+        mod_combobox['values'] = ["No mods downloaded"]
+        mod_combobox.set("No mods downloaded")  # Set to placeholder if no mods found
+
+def refresh_delete_mod_dropdown():
+    log_("Mod dropdown refreshed")
+    mod_folders = [folder for folder in os.listdir("../../../Mods/") if os.path.isdir(os.path.join("../../../Mods/", folder))]
+    
+    if mod_folders:
+        delete_mod_combobox['values'] = mod_folders  # Update dropdown options
+        delete_mod_combobox.set(mod_folders[0])  # Default to the first mod in the list
+    else:
+        delete_mod_combobox['values'] = ["No mods downloaded"]
+        delete_mod_combobox.set("No mods downloaded")  # Set to placeholder if no mods found
+
+
+def prevent_highlight(event):
+    event.widget.selection_clear()
+
+def add_mod_from_zip():
+    # Open a file dialog to select a .zip file
+    zip_file_path = filedialog.askopenfilename(title="Select Mod ZIP File", filetypes=[("ZIP files", "*.zip")])
+    
+    if not zip_file_path:
+        messagebox.showinfo("No File Selected", "You did not select a .zip file.")
+        log_("No mod added because no file was selected")
+        return
+    
+    # Get the name of the folder that will be created from the ZIP file
+    folder_name = os.path.splitext(os.path.basename(zip_file_path))[0]
+    destination_folder = os.path.join("../../../Mods/", folder_name)
+    log_(f"Adding mod {folder_name}...")
+
+    try:
+        # Create destination folder if it doesn't exist
+        if not os.path.exists(destination_folder):
+            os.makedirs(destination_folder)
+        
+        # Extract the ZIP file to the destination folder
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall(destination_folder)
+        
+        messagebox.showinfo("Success", f"Mod added successfully! To install it, go to the Install Mods tab!")
+        log_("Mod was added successfully!")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to extract mod: {e}")
+        log_(f"Failed to extract mod: {e}")
+
+def export_mod():
+    def refresh_export_mod_dropdown():
+        log_("Export mod dropdown refreshed")
+        mod_folders = [folder for folder in os.listdir("../../../Mods/") if os.path.isdir(os.path.join("../../../Mods/", folder))]
+
+        if mod_folders:
+            export_mod_combobox['values'] = mod_folders
+            export_mod_combobox.set(mod_folders[0]) 
+        else:
+            export_mod_combobox['values'] = ["No mods downloaded"]
+            export_mod_combobox.set("No mods downloaded")
+    
+    # Get a list of installed mods (all folders in the mods directory)
+    mod_folders = [folder for folder in os.listdir("../../../Mods/") if os.path.isdir(os.path.join("../../../Mods/", folder))]
+    
+    # If there are no mods installed, show an error message
+    if not mod_folders:
+        messagebox.showerror("No Mods Imported", "There are no mods to export. Please build your mod first")
+        return
+
+    # Create a new popup window
+    export_window = Toplevel()
+    export_window.title("Export Mod")
+    export_window.geometry("300x200")
+
+    icon = PhotoImage(file='../../../Assets/icon.png')
+    export_window.iconphoto(True, icon)
+    
+    # Label for the dropdown menu
+    label = ttk.Label(export_window, text="Select Mod to Export", font=("Arial", 12))
+    label.pack(pady=10)
+
+    export_mod_combobox = ttk.Combobox(export_window, state="readonly")  # Set to readonly to prevent typing
+    export_mod_combobox.pack(pady=10)
+    export_mod_combobox.bind("<FocusIn>", prevent_highlight)
+
+    refresh_export_mod_dropdown()
+
+    def handle_export():
+        selected_mod_name = export_mod_combobox.get()
+        
+        # Open a file dialog to choose where to save the zip file
+        save_path = filedialog.asksaveasfilename(defaultextension=".zip", filetypes=[("Zip files", "*.zip")], title="Save Mod As")
+        
+        # Check if a save path is selected (i.e., the user didn't cancel the dialog)
+        if save_path:
+            try:
+                # Create the zip file and add the selected mod folder to it
+                mod_folder_path = os.path.join("../../../Mods/", selected_mod_name)
+                with zipfile.ZipFile(save_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Walk through the selected mod folder and add all files
+                    for root, dirs, files in os.walk(mod_folder_path):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            # Add the file to the zip, maintaining the folder structure
+                            zipf.write(file_path, os.path.relpath(file_path, mod_folder_path))
+                            print(f"Writing file {file_path} to {save_path}")
+                
+                log_(f"Mod '{selected_mod_name}' has been successfully exported!")
+                messagebox.showinfo("Success", f"Mod '{selected_mod_name}' has been successfully exported.")
+                export_window.destroy()  # Close the popup after successful export
+
+            except Exception as e:
+                log_(f"An error occured while exporting mod: {e}")
+                messagebox.showerror("Error", f"An error occurred while exporting the mod: {e}")
+    
+    # Export button
+    export_button = ttk.Button(export_window, text="Export Mod", command=handle_export)
+    export_button.pack(pady=10)
+
+    # Start the event loop for the popup window
+    export_window.mainloop()
+
+def delete_mods(folder_path):
+    folder_path = os.path.join("../../../Mods/", folder_path)
+
+    if os.path.exists(folder_path):
+        # Ask for user confirmation before deleting
+        confirm = messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the mod folder '{folder_path}' and all of its contents? This will not remove the mod from the game installation, to do that you have to re-link the game. This will simply remove the option of installing the mod, as well as remove it's files from your hard drive. This action can not be reversed")
+        
+        if confirm:
+            try:
+                # Delete the folder and all its contents
+                shutil.rmtree(folder_path)
+                log_(f"{folder_path} removed successfully")
+                messagebox.showinfo("Success", f"The folder '{folder_path}' has been deleted successfully.")
+            except Exception as e:
+                # Handle errors (if any)
+                messagebox.showerror("Error", f"An error occurred while deleting the folder: {e}")
+        else:
+            messagebox.showinfo("Cancelled", "Folder deletion has been cancelled.")
+    else:
+        messagebox.showerror("Error", f"The folder '{folder_path}' does not exist.")
+
+def open_about_window():
+    about_window = Toplevel()
+    about_window.title("About GinkEngine")
+    about_window.geometry("400x400")
+
+    icon = PhotoImage(file='../../../Assets/icon.png')
+    about_window.iconphoto(True, icon)
+
+    label = tk.Label(about_window, wraplength=350, text="GinkEngine is a versatile and user-friendly modding tool designed for the game Puttler. Developed by Squidforge Productions, GinkEngine aims to streamline the modding process by providing a comprehensive set of tools that make mod creation, management, and sharing as easy as possible. \n \n Whether youre looking to add new content to the game or modify existing features, GinkEngine comes pre-packaged with a variety of utilities to handle common modding tasks. From extracting and exporting mod files to managing mod directories, GinkEngine simplifies the process, ensuring you can focus on creativity rather than technical details. \n \n The tool was developed with accessibility in mind, offering a clean, intuitive interface that allows both new and experienced modders to dive right in. RaixuStuffRaixuStuff (raysullyplays) also contributed to the project, adding valuable features and improvements to make GinkEngine even better. \n \n You are using the pre-release version of GinkEngine, otherwise known as version 0.9")
+    label.pack(pady=20)  # Pack it into the window with some padding
+
+    about_window.mainloop()
+
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
@@ -424,8 +720,11 @@ def run_as_admin():
 #         sys.exit(0)
 
 root = tk.Tk()
-root.title("GinkEngine V0.9")
+root.title("GinkEngine Pre-Release (v0.9)")
 root.geometry("600x800")
+
+icon = PhotoImage(file='../../../Assets/icon.png')
+root.iconphoto(True, icon)
 
 # Create a Menu widget
 style = ttk.Style()
@@ -444,8 +743,15 @@ file_menu = tk.Menu(menu_bar, tearoff=0)  # tearoff=0 removes the dashed line
 # Link Ginko Option
 file_menu.add_command(label="Link Puttler", command=lambda: link_ginko())
 file_menu.add_separator()  # Add a separator line
+
+#BepInEx console show/hide
 file_menu.add_command(label="Turn on BepInEx console", command=lambda: show_bepinex_console())
 file_menu.add_command(label="Turn off BepInEx console", command=lambda: hide_bepinex_console())
+file_menu.add_separator()  # Add a separator line
+
+#Add and export mods
+file_menu.add_command(label="Import mod", command=lambda: add_mod_from_zip())
+file_menu.add_command(label="Export mod", command=lambda: export_mod())
 file_menu.add_separator()  # Add a separator line
 
 # Add themes to Options
@@ -477,8 +783,7 @@ menu_bar.add_cascade(label="Options", menu=file_menu)  # Add "File" menu to the 
 
 # Create the "Help" menu
 help_menu = tk.Menu(menu_bar, tearoff=0)
-help_menu.add_command(label="About")
-help_menu.add_command(label="Startup Guide")
+help_menu.add_command(label="About", command=lambda: open_about_window())
 menu_bar.add_cascade(label="Help", menu=help_menu)
 
 # Create the "Tools" menu
@@ -504,8 +809,12 @@ tools_menu.add_separator()
 tools_menu.add_command(label="Modding Tools", state="disabled") # Mod tools
 
 tools_menu.add_command(label="AssetStudio", command=lambda: start_tool(os.path.abspath("../../AssetStudio/AssetStudioGUI.exe")))
-tools_menu.add_command(label="UABE", command=lambda: start_tool(os.path.abspath("../../UABE/AssetBundleExtractor.exe")))
 tools_menu.add_command(label="dnSpy", command=lambda: start_tool(os.path.abspath("../../dnSpy/dnSpy.exe")))
+
+UABE_menu = tk.Menu(tools_menu, tearoff=0)
+UABE_menu.add_command(label="UABEA(recommended)", command=lambda: start_tool(os.path.abspath("../../UABEA/UABEAvalonia.exe")))
+UABE_menu.add_command(label="UABE", command=lambda: start_tool(os.path.abspath("../../UABE/AssetBundleExtractor.exe")))
+tools_menu.add_cascade(label="UABE", menu=UABE_menu)
 
 menu_bar.add_cascade(label="Tools", menu=tools_menu)
 
@@ -526,33 +835,69 @@ notebook = ttk.Notebook(root)
 notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 # Create Frames for each tab
-Browse = ttk.Frame(notebook, padding=10)
+Remove = ttk.Frame(notebook, padding=10)
 Create = ttk.Frame(notebook, padding=10)
 Install = ttk.Frame(notebook, padding=10)
 
 # Add tabs to the Notebook
-notebook.add(Browse, text="Browse Mods")
 notebook.add(Create, text="Create Mods")
 notebook.add(Install, text="Install Mods")
+notebook.add(Remove, text="Delete Mods")
 
-# Content for Tab 1
-label1 = ttk.Label(Browse, text="This is Tab 1", font=("Arial", 14))
-label1.pack(pady=10)
-button1 = ttk.Button(Browse, text="Button in Tab 1")
-button1.pack()
-
-# Content for Tab 2
-label2 = ttk.Label(Create, text="This is Tab 2", font=("Arial", 14))
+# Content for Create tab
+label2 = ttk.Label(Create, text="Create Mod", font=("Arial", 14))
 label2.pack(pady=10)
-button2 = ttk.Button(Create, text="+")
-button2.pack()
-entry2 = ttk.Entry(Create)
-entry2.pack()
 
-# Content for Tab 3
-label3 = ttk.Label(Install, text="This is Tab 3", font=("Arial", 14))
+name_label = ttk.Label(Create, text="Name:")
+name_label.pack(anchor="w", padx=5)
+name_entry = ttk.Entry(Create, width=30)
+name_entry.pack(padx=5, pady=2)
+
+author_label = ttk.Label(Create, text="Author:")
+author_label.pack(anchor="w", padx=5)
+author_entry = ttk.Entry(Create, width=30)
+author_entry.pack(padx=5, pady=2)
+
+description_label = ttk.Label(Create, text="Description:")
+description_label.pack(anchor="w", padx=5)
+description_entry = ttk.Entry(Create, width=30)
+description_entry.pack(padx=5, pady=2)
+
+build_button = ttk.Button(Create, text="Build Mod", command=lambda: build_final_mod(name_entry.get(), author_entry.get(), description_entry.get()))
+build_button.pack(pady=5)
+
+# Content for Install tab
+
+mod_folders = [folder for folder in os.listdir("../../../Mods/") if os.path.isdir(os.path.join("../../../Mods/", folder))]
+
+label3 = ttk.Label(Install, text="Install Mods", font=("Arial", 14))
 label3.pack(pady=10)
-combo3 = ttk.Combobox(Install, values=["Option 1", "Option 2", "Option 3"])
-combo3.pack()
+
+refresh_button = ttk.Button(Install, text="Refresh", command=lambda: refresh_mod_dropdown())
+refresh_button.pack(pady=10)
+
+mod_combobox = ttk.Combobox(Install, state="readonly")  # Set to readonly to prevent typing
+mod_combobox.pack(pady=10)
+mod_combobox.bind("<FocusIn>", prevent_highlight)
+
+refresh_mod_dropdown()
+
+install_button = ttk.Button(Install, text="Install", command=lambda: install_mod(mod_combobox.get()))
+install_button.pack(pady=10)
+
+# Content for Delete tab
+label1 = ttk.Label(Remove, text="Remove mods", font=("Arial", 14))
+label1.pack(pady=10)
+refresh_button2 = ttk.Button(Remove, text="Refresh", command=lambda: refresh_delete_mod_dropdown())
+refresh_button2.pack(pady=10)
+
+delete_mod_combobox = ttk.Combobox(Remove, state="readonly")  # Set to readonly to prevent typing
+delete_mod_combobox.pack(pady=10)
+delete_mod_combobox.bind("<FocusIn>", prevent_highlight)
+
+refresh_delete_mod_dropdown()
+
+button1 = ttk.Button(Remove, text="Remove selected mod", command=lambda: delete_mods(delete_mod_combobox.get()))
+button1.pack()
 
 root.mainloop()

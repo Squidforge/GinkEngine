@@ -5,3 +5,5 @@ C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\BepInEx\plugi
 C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.csproj.CopyComplete
 C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.dll
 C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\GinkEngine\raw\HelloWorldExample\obj\Debug\HelloWorldExample.pdb
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\BepInEx\plugins\HelloWorldExample.dll
+C:\Users\squid\Desktop\GinkEngine\GinkEngine\DONT_SHARE\Game Files\BepInEx\plugins\HelloWorldExample.pdb
